@@ -1,14 +1,14 @@
 package uk.ac.rhul.cs.dice.starworlds.environment.interaction;
 
-import uk.ac.rhul.cs.dice.starworlds.appearances.Appearance;
 import uk.ac.rhul.cs.dice.starworlds.appearances.EnvironmentAppearance;
+import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.Event;
 
-public abstract class AbstractEnvironmentConnection extends Recipient implements
+public abstract class AbstractEnvironmentConnection implements
 		EnvironmentConnection {
 
 	private Boolean open = true;
 	// The connection to the pair environment
-	private AbstractEnvironmentConnection mutualConnector;
+	private AbstractEnvironmentConnection remoteConnection;
 	// The appearance of the local environment
 	private EnvironmentAppearance environmentAppearance;
 
@@ -18,26 +18,17 @@ public abstract class AbstractEnvironmentConnection extends Recipient implements
 	}
 
 	public AbstractEnvironmentConnection(
-			AbstractEnvironmentConnection mutualConnector,
+			AbstractEnvironmentConnection remoteConnection,
 			EnvironmentAppearance environmentAppearance) {
-		this.mutualConnector = mutualConnector;
+		this.remoteConnection = remoteConnection;
 		this.environmentAppearance = environmentAppearance;
-		mutualConnector.setMutualConnector(this);
+		remoteConnection.setRemoteConnection(this);
 	}
 
-	@Override
-	public void send(Event<?> message) {
-		// System.out.println(this + " SENDING: " + message);
-		mutualConnector.receive(message);
+	public EnvironmentAppearance getEnvironmentAppearance() {
+		return environmentAppearance;
 	}
-
-	@Override
-	public void receive(Event<?> message) {
-		if (open) {
-			// System.out.println(this + " RECEIVED: " + message);
-		}
-	}
-
+	
 	@Override
 	public boolean isOpen() {
 		return open;
@@ -54,17 +45,22 @@ public abstract class AbstractEnvironmentConnection extends Recipient implements
 	}
 
 	@Override
-	public EnvironmentConnection getMutualConnector() {
-		return mutualConnector;
+	public boolean isConnected() {
+		return this.getRemoteConnection() != null;
 	}
 
 	@Override
-	public Appearance getRemoteAppearance() {
-		return this.mutualConnector.getAppearance();
+	public EnvironmentConnection getRemoteConnection() {
+		return remoteConnection;
 	}
 
-	private void setMutualConnector(EnvironmentConnection mutualConnector) {
-		this.mutualConnector = (AbstractEnvironmentConnection) mutualConnector;
+	@Override
+	public EnvironmentAppearance getRemoteAppearance() {
+		return this.remoteConnection.getAppearance();
+	}
+
+	private void setRemoteConnection(EnvironmentConnection mutualConnector) {
+		this.remoteConnection = (AbstractEnvironmentConnection) mutualConnector;
 	}
 
 	@Override
@@ -78,7 +74,7 @@ public abstract class AbstractEnvironmentConnection extends Recipient implements
 				+ " ["
 				+ this.getAppearance()
 				+ "<->"
-				+ ((this.getMutualConnector() != null) ? this
-						.getMutualConnector().getAppearance() : " ") + "]";
+				+ ((this.getRemoteConnection() != null) ? this
+						.getRemoteConnection().getAppearance() : " ") + "]";
 	}
 }

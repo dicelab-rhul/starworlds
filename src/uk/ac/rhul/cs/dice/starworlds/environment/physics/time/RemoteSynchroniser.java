@@ -1,24 +1,15 @@
 package uk.ac.rhul.cs.dice.starworlds.environment.physics.time;
 
-import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet.INetEnvironmentConnection;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet.SynchronisationMessage;
 
 public class RemoteSynchroniser implements Runnable {
 
-	public static enum SyncPoint {
-		RUNAGENTS, EXECUTEACTIONS, PROPAGATEACTIONS;
-	}
-
 	private INetEnvironmentConnection remoteEnvironment;
 	private SyncPoint current;
 	private volatile SyncPoint received;
 	// TODO remove
-	private Logger logger;
+	//private Logger logger;
 
 	public RemoteSynchroniser(INetEnvironmentConnection remoteEnvironment) {
 		this.remoteEnvironment = remoteEnvironment;

@@ -8,7 +8,7 @@ import uk.ac.rhul.cs.dice.starworlds.appearances.Appearance;
 import uk.ac.rhul.cs.dice.starworlds.appearances.EnvironmentAppearance;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.AbstractEnvironmentConnection;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.EnvironmentConnection;
-import uk.ac.rhul.cs.dice.starworlds.environment.interaction.Event;
+import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.Event;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.AbstractConnectedEnvironment.AmbientRelation;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.Environment;
 import uk.ac.rhul.cs.dice.starworlds.environment.physics.time.RemoteSynchroniser;
@@ -168,7 +168,7 @@ public class INetEnvironmentConnection extends AbstractEnvironmentConnection
 	}
 
 	@Override
-	public EnvironmentConnection getMutualConnector() {
+	public EnvironmentConnection getRemoteConnection() {
 		// TODO
 		return null;
 	}
@@ -205,5 +205,11 @@ public class INetEnvironmentConnection extends AbstractEnvironmentConnection
 
 	public void setSynchroniser(RemoteSynchroniser synchroniser) {
 		this.synchroniser = synchroniser;
+	}
+
+	@Override
+	public boolean isConnected() {
+		// TODO
+		return true;
 	}
 }

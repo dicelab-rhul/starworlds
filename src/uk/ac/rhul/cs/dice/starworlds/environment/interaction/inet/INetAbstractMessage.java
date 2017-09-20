@@ -2,10 +2,10 @@ package uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet;
 
 import java.io.Serializable;
 
-import uk.ac.rhul.cs.dice.starworlds.environment.interaction.Event;
+import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.Event;
 
 public abstract class INetAbstractMessage<T extends Serializable> implements
-		Event<T>, Serializable {
+		Event {
 
 	private static final long serialVersionUID = -7398687670848928068L;
 
@@ -19,12 +19,10 @@ public abstract class INetAbstractMessage<T extends Serializable> implements
 		this.payload = payload;
 	}
 
-	@Override
 	public T getPayload() {
 		return payload;
 	}
 
-	@Override
 	public void setPayload(T payload) {
 		this.payload = payload;
 	}

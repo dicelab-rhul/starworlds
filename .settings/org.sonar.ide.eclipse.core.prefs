@@ -1,9 +1,0 @@
-buildPathBinsCheckbox=true
-buildPathLibsCheckbox=true
-buildPathSourcesCheckbox=true
-buildPathTestCheckbox=true
-eclipse.preferences.version=1
-extraProperties=
-projectKey=GenericAgentsWorldLibrary
-serverUrl=http\://localhost\:9000
-version=2

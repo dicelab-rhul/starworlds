@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import uk.ac.rhul.cs.dice.starworlds.appearances.Appearance;
 import uk.ac.rhul.cs.dice.starworlds.appearances.EnvironmentAppearance;
-import uk.ac.rhul.cs.dice.starworlds.environment.interaction.Event;
+import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.Event;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.Environment;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.AbstractConnectedEnvironment.AmbientRelation;
 

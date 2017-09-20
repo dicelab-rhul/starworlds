@@ -5,19 +5,18 @@ import java.util.Collection;
 import uk.ac.rhul.cs.dice.starworlds.actions.Action;
 import uk.ac.rhul.cs.dice.starworlds.actions.environmental.AbstractEnvironmentalAction;
 import uk.ac.rhul.cs.dice.starworlds.appearances.ActiveBodyAppearance;
+import uk.ac.rhul.cs.dice.starworlds.appearances.EnvironmentAppearance;
 import uk.ac.rhul.cs.dice.starworlds.entities.Agent;
 import uk.ac.rhul.cs.dice.starworlds.environment.ambient.Ambient;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.AbstractConnectedEnvironment;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.AbstractEnvironment;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.Environment;
-import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.Simulator;
-import uk.ac.rhul.cs.dice.starworlds.environment.physics.time.LocalSynchroniser;
-import uk.ac.rhul.cs.dice.starworlds.environment.physics.time.SuperSynchroniser;
+import uk.ac.rhul.cs.dice.starworlds.environment.physics.time.EnvironmentSynchroniser;
 import uk.ac.rhul.cs.dice.starworlds.perception.AbstractPerception;
 
 public abstract class AbstractConnectedPhysics extends AbstractPhysics {
 
-	private LocalSynchroniser synchroniser;
+	protected EnvironmentSynchroniser synchroniser;
 
 	public AbstractConnectedPhysics() {
 		super();
@@ -25,7 +24,12 @@ public abstract class AbstractConnectedPhysics extends AbstractPhysics {
 
 	@Override
 	public void simulate() {
-		((SuperSynchroniser) synchroniser).simulate();
+		synchroniser.simulate();
+	}
+
+	@Override
+	public void run() {
+		this.simulate();
 	}
 
 	/**
@@ -50,7 +54,6 @@ public abstract class AbstractConnectedPhysics extends AbstractPhysics {
 
 	@Override
 	public void executeActions() {
-		this.getEnvironment().clearAndUpdateActionsAfterPropagation();
 		// System.out.println("EXECUTE ACTIONS: " + this.getId()
 		// + System.lineSeparator() + "   CommunicationActions: "
 		// + environment.getState().getCommunicationActions()
@@ -99,22 +102,18 @@ public abstract class AbstractConnectedPhysics extends AbstractPhysics {
 		super.notify(action, bodyappearance, perceptions, context);
 	}
 
-	/**
-	 * Initialises the {@link LocalSynchroniser} for local sub and neighbour
-	 * {@link Physics}.
-	 * 
-	 * @param subenvironments
-	 * @param neighbouringenvironments
-	 */
-	public void initialiseSynchronisers(
-			Collection<AbstractConnectedEnvironment> subenvironments,
-			Collection<AbstractConnectedEnvironment> neighbouringenvironments) {
-		this.synchroniser.initialiseSynchroniser(subenvironments,
-				neighbouringenvironments);
+	public EnvironmentSynchroniser getSynchroniser() {
+		return synchroniser;
 	}
 
-	public LocalSynchroniser getSynchroniser() {
-		return synchroniser;
+	@Override
+	public void setEnvironment(AbstractEnvironment environment) {
+		super.setEnvironment(environment);
+		this.synchroniser = new EnvironmentSynchroniser(getEnvironment());
+	}
+
+	public void addSynchroniser(EnvironmentAppearance environment) {
+		synchroniser.addSynchroniser(environment);
 	}
 
 	@Override
@@ -122,22 +121,4 @@ public abstract class AbstractConnectedPhysics extends AbstractPhysics {
 		return (AbstractConnectedEnvironment) super.getEnvironment();
 	}
 
-	@Override
-	public void setEnvironment(AbstractEnvironment environment) {
-		if (environment != null) {
-			if (!Simulator.class.isAssignableFrom(environment.getClass())) {
-				this.synchroniser = new LocalSynchroniser(
-						(AbstractConnectedEnvironment) environment);
-			} else {
-				this.synchroniser = new SuperSynchroniser(
-						(AbstractConnectedEnvironment) environment);
-			}
-		}
-		super.setEnvironment(environment);
-	}
-
-	@Override
-	public void run() {
-		this.simulate();
-	}
 }
