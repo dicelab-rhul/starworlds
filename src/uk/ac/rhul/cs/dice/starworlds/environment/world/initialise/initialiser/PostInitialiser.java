@@ -14,8 +14,8 @@ import uk.ac.rhul.cs.dice.starworlds.environment.world.node.WorldNodeLocal;
  * An {@link WorldNodeInitialiser} class that
  * {@link Initialiser#initialise(Initialisable) initialises} {@link WorldNode}s
  * calling the {@link AbstractConnectedEnvironment#postInitialisation()} method.
- * See this method for details. This {@link InitialisationVisitor} is used in
- * the {@link WorldDeployer} to initialise the {@link World World}.
+ * See this method for details. This {@link WorldNodeInitialiser} is used in the
+ * {@link WorldDeployer} to initialise the {@link World World}.
  * 
  * @author Ben Wilkins
  *

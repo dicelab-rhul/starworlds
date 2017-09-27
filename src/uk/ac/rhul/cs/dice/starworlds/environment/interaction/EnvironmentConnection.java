@@ -19,8 +19,6 @@ public interface EnvironmentConnection {
 
 	public boolean isConnected();
 
-	public EnvironmentConnection getRemoteConnection();
-
 	/**
 	 * Getter for the {@link Appearance} of the local {@link Environment}.
 	 * 

@@ -1,9 +1,7 @@
 package uk.ac.rhul.cs.dice.starworlds.environment.physics.time;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import uk.ac.rhul.cs.dice.starworlds.actions.Action;
@@ -11,9 +9,7 @@ import uk.ac.rhul.cs.dice.starworlds.appearances.EnvironmentAppearance;
 import uk.ac.rhul.cs.dice.starworlds.entities.Agent;
 import uk.ac.rhul.cs.dice.starworlds.entities.agent.Mind;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.Event;
-import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.EventHandler;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.SynchronisationEvent;
-import uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet.INetEnvironmentConnection;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.AbstractConnectedEnvironment;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.Environment;
 import uk.ac.rhul.cs.dice.starworlds.environment.physics.AbstractConnectedPhysics;
@@ -21,14 +17,12 @@ import uk.ac.rhul.cs.dice.starworlds.environment.physics.AbstractPhysics;
 
 public class EnvironmentSynchroniser implements Synchroniser {
 
-	private Collection<RemoteSynchroniser> remoteSynchronisers;
 	private Map<EnvironmentAppearance, SyncPoint> synchronisers;
 	private AbstractConnectedPhysics physics;
 	private int cycleTime = 0;
 
 	public EnvironmentSynchroniser(AbstractConnectedEnvironment environment) {
 		this.physics = (AbstractConnectedPhysics) environment.getPhysics();
-		this.remoteSynchronisers = new ArrayList<>();
 		this.synchronisers = new HashMap<>();
 	}
 
@@ -104,13 +98,6 @@ public class EnvironmentSynchroniser implements Synchroniser {
 		}
 	}
 
-	public RemoteSynchroniser addRemoteSynchroniser(
-			INetEnvironmentConnection remoteEnvironment) {
-		RemoteSynchroniser sync = new RemoteSynchroniser(remoteEnvironment);
-		remoteSynchronisers.add(sync);
-		return sync;
-	}
-
 	/**
 	 * Calls the {@link Agent#run()} method for all {@link Agent}s in the
 	 * system. Each {@link Agent} performs its {@link Mind#cycle(Object...)
@@ -121,8 +108,7 @@ public class EnvironmentSynchroniser implements Synchroniser {
 	@Override
 	public void runActors() {
 		// TODO multithreaded
-		System.out.println(this + " " + this.synchronisers
-				+ " RUNNINGAGENTS...");
+		printStep("RUNNINGAGENTS...");
 		physics.runActors();
 		doneLocal(SyncPoint.RUNAGENTS);
 
@@ -137,8 +123,7 @@ public class EnvironmentSynchroniser implements Synchroniser {
 	@Override
 	public void propagateActions() {
 		// TODO multithreaded
-		System.out.println(this + " " + this.synchronisers
-				+ " PROPAGATING ACTIONS...");
+		printStep(" PROPAGATING ACTIONS...");
 		physics.propagateActions();
 		doneLocal(SyncPoint.PROPAGATEACTIONS);
 		// done(SyncPoint.PROPAGATEACTIONS);
@@ -155,8 +140,7 @@ public class EnvironmentSynchroniser implements Synchroniser {
 	@Override
 	public void executeActions() {
 		// TODO multithreaded
-		System.out.println(this + " " + this.synchronisers
-				+ " EXECUTING ACTIONS...");
+		printStep(" EXECUTING ACTIONS...");
 		physics.executeActions();
 		doneLocal(SyncPoint.EXECUTEACTIONS);
 		// done(SyncPoint.EXECUTEACTIONS);
@@ -177,49 +161,32 @@ public class EnvironmentSynchroniser implements Synchroniser {
 		synchronise(reached);
 		while (waitLocal(reached))
 			;
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	protected void synchronise(SyncPoint reached) {
 		getEnvironment().synchronise(
-				new SynchronisationEvent(getLocalEnvironmentAppearance(), reached, cycleTime));
+				new SynchronisationEvent(getLocalEnvironmentAppearance(),
+						reached, cycleTime));
 	}
 
 	protected EnvironmentAppearance getLocalEnvironmentAppearance() {
 		return physics.getEnvironment().getAppearance();
 	}
 
-	// protected void done(SyncPoint reached) {
-	// remoteSynchronisers.forEach((remote) -> remote.done(reached));
-	// }
-
-	protected List<Thread> syncWithRemoteEnvironments(SyncPoint point) {
-		List<Thread> ts = new ArrayList<>();
-		remoteSynchronisers.forEach((remote) -> {
-			remote.setCurrent(point);
-			Thread t = new Thread(remote);
-			ts.add(t);
-			t.start();
-		});
-		return ts;
-	}
-
-	protected void wait(List<Thread> threads) {
-		for (Thread t : threads) {
-			try {
-				t.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+	protected void printStep(String message) {
+		System.out.println(this + " " + this.synchronisers + message + " @ "
+				+ System.currentTimeMillis() / 1000);
 	}
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName()
-				+ " : "
-				+ physics.getId()
-				+ ((!this.remoteSynchronisers.isEmpty()) ? " Remote: "
-						+ this.remoteSynchronisers : "");
+		return this.getClass().getSimpleName() + " : " + physics.getId();
 	}
 
 	/**
@@ -239,13 +206,14 @@ public class EnvironmentSynchroniser implements Synchroniser {
 	public synchronized void update(Object origin, Event event) {
 		SynchronisationEvent sevent = (SynchronisationEvent) event;
 		System.out.println(this.getLocalEnvironmentAppearance()
-				+ ": SYNCEVENT: " + event);
+				+ ": SYNCEVENT: " + event + " -> " + this.synchronisers + " @ "
+				+ System.currentTimeMillis() / 1000);
 		if (this.synchronisers.replace(
 				(EnvironmentAppearance) sevent.getOrigin(),
 				sevent.getSyncPoint()) == null) {
 			if (sevent.getSyncPoint() == SyncPoint.NONE) {
-				System.out.println(this.getLocalEnvironmentAppearance() + ": adding new Synchroniser: "
-						+ event.getOrigin());
+				System.out.println(this.getLocalEnvironmentAppearance()
+						+ ": adding new Synchroniser: " + event.getOrigin());
 				addSynchroniser(sevent.getOrigin());
 			} else {
 				unknownEnvrionmentMessage(sevent);

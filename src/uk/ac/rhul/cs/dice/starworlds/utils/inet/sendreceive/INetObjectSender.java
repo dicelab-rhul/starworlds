@@ -22,8 +22,9 @@ public class INetObjectSender implements INetSender {
 	}
 
 	@Override
-	public void send(Object message) {
+	public synchronized void send(Object message) {
 		try {
+			//System.out.println("send: " + message);
 			out.writeObject(message);
 			out.flush();
 		} catch (IOException e) {

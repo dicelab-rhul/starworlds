@@ -19,12 +19,14 @@ public class INetObjectReceiver implements INetReceiver {
 	}
 
 	@Override
-	public Object receive() {
+	public synchronized Object receive() {
 		try {
 			return this.in.readObject();
-		} catch (ClassNotFoundException | IOException e) {
+		} catch (ClassNotFoundException | IOException | NullPointerException e) {
+			
 			System.err.println(this + " RECEIVED INVALID DATA");
 			e.printStackTrace();
+			System.exit(-1);
 			return null;
 		}
 	}

@@ -1,12 +1,16 @@
 package uk.ac.rhul.cs.dice.starworlds.environment.world.node;
 
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.AbstractConnectedEnvironment;
+import uk.ac.rhul.cs.dice.starworlds.environment.world.WorldAddress;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.initialise.WorldNodeInitialiser;
 
 public class WorldNodeRemote extends WorldNode {
 
-	public WorldNodeRemote(String aliasid) {
+	private WorldAddress world;
+
+	public WorldNodeRemote(String aliasid, WorldAddress world) {
 		this.setId(aliasid);
+		this.world = world;
 	}
 
 	@Override
@@ -19,4 +23,7 @@ public class WorldNodeRemote extends WorldNode {
 		initialiser.initialise(this);
 	}
 
+	public WorldAddress getWorld() {
+		return world;
+	}
 }

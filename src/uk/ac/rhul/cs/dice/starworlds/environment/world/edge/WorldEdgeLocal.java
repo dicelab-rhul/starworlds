@@ -27,4 +27,14 @@ public class WorldEdgeLocal extends WorldEdge {
 	public String toString() {
 		return "[" + n1 + relation.toString() + n2 + "]";
 	}
+
+	@Override
+	public WorldNodeLocal getNode1() {
+		return (WorldNodeLocal) super.getNode1();
+	}
+
+	@Override
+	public WorldNodeLocal getNode2() {
+		return (WorldNodeLocal) super.getNode2();
+	}
 }

@@ -1,6 +1,7 @@
 package uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
@@ -26,9 +27,6 @@ public class INetDefaultServer extends INetServer {
 
 	@Override
 	protected void initialiseSlave(INetSlave slave) {
-		// removed adding observer, the observer will be the
-		// INetEnvironmentConnection
-		// notify the connection manager that a new slave has been created
 		setChanged();
 		notifyObservers(slave);
 		subinitslave(slave);
@@ -44,13 +42,18 @@ public class INetDefaultServer extends INetServer {
 	@Override
 	public SocketAddress connect(String host, Integer port)
 			throws UnknownHostException, IOException {
-		System.out.println(this + " INITIATING COMMUNICATION WITH: " + host
-				+ ":" + port);
+		if (port == null || port == 0) {
+			ServerSocket s = new ServerSocket(0);
+			port = s.getLocalPort();
+			s.close();
+		}
+		// System.out.println(this + " INITIATING COMMUNICATION WITH: " + host
+		// + ":" + port);
 		Socket socket = new Socket(host, port);
 		INetSlave slave = newSlave(socket);
 		subinitslave(slave);
-		System.out.println(this + " CONNECTION SUCCESSFUL: " + slave);
-		return slave.getSocket().getRemoteSocketAddress();
+		// System.out.println(this + " CONNECTION SUCCESSFUL: " + slave);
+		return slave.getRemoteSocketAddress();
 	}
 
 	@Override

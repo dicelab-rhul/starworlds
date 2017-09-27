@@ -16,4 +16,14 @@ public class WorldEdgeRemote extends WorldEdge {
 	public void initialise(WorldEdgeInitialiser initialiser) {
 		initialiser.initialise(this);
 	}
+
+	@Override
+	public WorldNodeLocal getNode1() {
+		return (WorldNodeLocal) super.getNode1();
+	}
+
+	@Override
+	public WorldNodeRemote getNode2() {
+		return (WorldNodeRemote) super.getNode2();
+	}
 }

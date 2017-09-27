@@ -10,6 +10,9 @@ public abstract class AbstractEvent implements Event {
 
 	private String id;
 	private Object origin;
+	
+	public AbstractEvent() {
+	}
 
 	public AbstractEvent(Identifiable origin) {
 		this.origin = origin;

@@ -39,7 +39,7 @@ public abstract class INetServer extends Observable implements Observer {
 				while (true) {
 					try {
 						Socket socket = INetServer.this.socket.accept();
-						System.out.println("SERVER ACCEPTED: " + socket);
+						//System.out.println("SERVER ACCEPTED: " + socket);
 						INetSlave slave = newSlave(socket);
 						initialiseSlave(slave);
 					} catch (IOException e) {
@@ -94,5 +94,9 @@ public abstract class INetServer extends Observable implements Observer {
 	@Override
 	public String toString() {
 		return socket.toString();
+	}
+
+	public Integer getLocalPort() {
+		return socket.getLocalPort();
 	}
 }

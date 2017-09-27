@@ -45,10 +45,10 @@ public class EnvironmentConnector extends EventHandler implements EventListener 
 
 	private EnvironmentAppearance localEnvironment;
 
-	private Map<EnvironmentAppearance, LocalEnvironmentConnection> environmentConnections;
-	private Map<EnvironmentAppearance, LocalEnvironmentConnection> subEnvironmentConnections;
-	private Map<EnvironmentAppearance, LocalEnvironmentConnection> neighbourEnvironmentConnections;
-	private LocalEnvironmentConnection superEnvironmentConnection;
+	private Map<EnvironmentAppearance, AbstractEnvironmentConnection> environmentConnections;
+	private Map<EnvironmentAppearance, AbstractEnvironmentConnection> subEnvironmentConnections;
+	private Map<EnvironmentAppearance, AbstractEnvironmentConnection> neighbourEnvironmentConnections;
+	private AbstractEnvironmentConnection superEnvironmentConnection;
 
 	private Map<String, Event> eventmap = new HashMap<>();
 
@@ -61,6 +61,15 @@ public class EnvironmentConnector extends EventHandler implements EventListener 
 		subscriptionHandler = new SubscriptionEventListener();
 		this.addEventListener(SubscriptionEvent.class, subscriptionHandler);
 		this.addEventListener(Event.class, eventHandler);
+	}
+
+	public boolean hasConnection(String id) {
+		return environmentConnections.containsKey(new EnvironmentAppearance(id,
+				null, null));
+	}
+
+	public boolean hasConnection(EnvironmentAppearance appearance) {
+		return environmentConnections.containsKey(appearance);
 	}
 
 	public void addLocalEventListener(Class<? extends Event> event,
@@ -86,8 +95,8 @@ public class EnvironmentConnector extends EventHandler implements EventListener 
 			if (listeners != null) {
 				for (EventListener l : listeners) {
 					if (!l.equals(origin)) {
-//						System.out.println(localEnvironment + " update: " + l
-//								+ " with event: " + event);
+						// System.out.println(localEnvironment + " update: " + l
+						// + " with event: " + event);
 						l.update(origin, event);
 					}
 				}
@@ -142,26 +151,26 @@ public class EnvironmentConnector extends EventHandler implements EventListener 
 		update(eventHandler, event);
 	}
 
-	protected void addEnvironment(LocalEnvironmentConnection connection) {
+	protected void addEnvironment(AbstractEnvironmentConnection connection) {
 		environmentConnections
 				.put(connection.getRemoteAppearance(), connection);
 		// all connections should subscribe to synchronisation events by default
 		this.addEventListener(SynchronisationEvent.class, connection);
 	}
 
-	public void addSubEnvironment(LocalEnvironmentConnection connection) {
+	public void addSubEnvironment(AbstractEnvironmentConnection connection) {
 		addEnvironment(connection);
 		subEnvironmentConnections.put(connection.getRemoteAppearance(),
 				connection);
 	}
 
-	public void addNeighbourEnvironment(LocalEnvironmentConnection connection) {
+	public void addNeighbourEnvironment(AbstractEnvironmentConnection connection) {
 		addEnvironment(connection);
 		neighbourEnvironmentConnections.put(connection.getRemoteAppearance(),
 				connection);
 	}
 
-	public void setSuperEnvironment(LocalEnvironmentConnection connection) {
+	public void setSuperEnvironment(AbstractEnvironmentConnection connection) {
 		if (this.superEnvironmentConnection == null) {
 			addEnvironment(connection);
 			this.superEnvironmentConnection = connection;

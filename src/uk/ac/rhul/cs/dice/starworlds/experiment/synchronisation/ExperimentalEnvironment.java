@@ -11,7 +11,7 @@ import uk.ac.rhul.cs.dice.starworlds.environment.physics.AbstractConnectedPhysic
 public class ExperimentalEnvironment extends AbstractConnectedEnvironment {
 
 	public ExperimentalEnvironment(String id) {
-		super(new ExperimentalAmbient(null), new ExperimentalPhysics(),
+		super(0, new ExperimentalAmbient(null), new ExperimentalPhysics(),
 				new EnvironmentAppearance(id, false, false),
 				ExperimentSynchronisation.SIMPLEPOSSIBLEACTIONS, true);
 	}

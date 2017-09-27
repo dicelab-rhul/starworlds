@@ -13,7 +13,6 @@ import uk.ac.rhul.cs.dice.starworlds.environment.world.WorldDeployer;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.initialise.Initialisable;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.initialise.Initialiser;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.initialise.WorldNodeInitialiser;
-import uk.ac.rhul.cs.dice.starworlds.environment.world.node.WorldNode;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.node.WorldNodeLocal;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.node.WorldNodeRemote;
 import uk.ac.rhul.cs.dice.starworlds.initialisation.ReflectiveMethodStore;
@@ -23,7 +22,7 @@ import uk.ac.rhul.cs.dice.starworlds.initialisation.ReflectiveMethodStore;
  * {@link Initialiser#initialise(Initialisable) initialises} {@link Environment}
  * s and attempting to validate them. That is, it ensures that all methods
  * called via reflection have been defined by a developer. See
- * {@link ReflectiveMethodStore} for details. This {@link InitialisationVisitor}
+ * {@link ReflectiveMethodStore} for details. This {@link WorldNodeInitialiser}
  * is used in the {@link WorldDeployer} to initialise the {@link World World}.
  * 
  * @author Ben Wilkins

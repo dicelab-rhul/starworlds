@@ -2,33 +2,34 @@ package uk.ac.rhul.cs.dice.starworlds.environment.interaction;
 
 import uk.ac.rhul.cs.dice.starworlds.appearances.EnvironmentAppearance;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.Event;
+import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.EventListener;
 
 public abstract class AbstractEnvironmentConnection implements
-		EnvironmentConnection {
+		EnvironmentConnection, EventListener {
 
-	private Boolean open = true;
-	// The connection to the pair environment
-	private AbstractEnvironmentConnection remoteConnection;
+	protected Boolean open = true;
 	// The appearance of the local environment
-	private EnvironmentAppearance environmentAppearance;
+	protected EnvironmentAppearance environmentAppearance;
 
-	public AbstractEnvironmentConnection(
+	/*
+	 * The local connector will be notified of any events that this connection
+	 * has received.
+	 */
+	protected EnvironmentConnector connector;
+
+	public AbstractEnvironmentConnection(EnvironmentConnector connector,
 			EnvironmentAppearance environmentAppearance) {
 		this.environmentAppearance = environmentAppearance;
+		this.connector = connector;
 	}
 
-	public AbstractEnvironmentConnection(
-			AbstractEnvironmentConnection remoteConnection,
-			EnvironmentAppearance environmentAppearance) {
-		this.remoteConnection = remoteConnection;
-		this.environmentAppearance = environmentAppearance;
-		remoteConnection.setRemoteConnection(this);
+	@Override
+	public void receive(Event event) {
+		if (isOpen()) {
+			connector.update(this, event);
+		}
 	}
 
-	public EnvironmentAppearance getEnvironmentAppearance() {
-		return environmentAppearance;
-	}
-	
 	@Override
 	public boolean isOpen() {
 		return open;
@@ -45,36 +46,25 @@ public abstract class AbstractEnvironmentConnection implements
 	}
 
 	@Override
-	public boolean isConnected() {
-		return this.getRemoteConnection() != null;
-	}
-
-	@Override
-	public EnvironmentConnection getRemoteConnection() {
-		return remoteConnection;
-	}
-
-	@Override
-	public EnvironmentAppearance getRemoteAppearance() {
-		return this.remoteConnection.getAppearance();
-	}
-
-	private void setRemoteConnection(EnvironmentConnection mutualConnector) {
-		this.remoteConnection = (AbstractEnvironmentConnection) mutualConnector;
-	}
-
-	@Override
 	public EnvironmentAppearance getAppearance() {
 		return this.environmentAppearance;
 	}
 
+	public EnvironmentAppearance getEnvironmentAppearance() {
+		return environmentAppearance;
+	}
+
+	@Override
+	public abstract EnvironmentAppearance getRemoteAppearance();
+
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName()
-				+ " ["
-				+ this.getAppearance()
-				+ "<->"
-				+ ((this.getRemoteConnection() != null) ? this
-						.getRemoteConnection().getAppearance() : " ") + "]";
+		return this.getClass().getSimpleName() + " [" + this.getAppearance()
+				+ "<->" + this.getRemoteAppearance() + "]";
+	}
+
+	@Override
+	public void update(Object origin, Event event) {
+		send(event);
 	}
 }

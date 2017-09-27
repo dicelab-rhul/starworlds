@@ -2,6 +2,7 @@ package uk.ac.rhul.cs.dice.starworlds.utils.inet;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.Observable;
 
 import uk.ac.rhul.cs.dice.starworlds.utils.inet.sendreceive.INetReceiver;
@@ -41,18 +42,24 @@ public abstract class INetSlave extends Observable implements Runnable {
 		return this.socket;
 	}
 
+	public SocketAddress getRemoteSocketAddress() {
+		return this.socket.getRemoteSocketAddress();
+	}
+
 	@Override
 	public void run() {
-		System.out.println(this.socket + " LISTENING...");
+		//System.out.println(this.socket + " LISTENING...");
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				while (true) {
 					Object received = receiver.receive();
-					//System.out.println("RECEIVED: " + received);
+					// System.out.println("RECEIVED: " + received);
 					if (!waiting) {
-						setChanged();
-						notifyObservers(received);
+						if(received != null) {
+							setChanged();
+							notifyObservers(received);
+						}
 					} else {
 						waitReceive = received;
 						waiting = false;
@@ -103,7 +110,7 @@ public abstract class INetSlave extends Observable implements Runnable {
 	}
 
 	public void send(Object message) {
-		//System.out.println("SENDING: " + message);
+		// System.out.println("SENDING: " + message);
 		sender.send(message);
 	}
 

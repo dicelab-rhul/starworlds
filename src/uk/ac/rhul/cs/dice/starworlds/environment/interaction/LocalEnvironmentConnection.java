@@ -2,36 +2,37 @@ package uk.ac.rhul.cs.dice.starworlds.environment.interaction;
 
 import uk.ac.rhul.cs.dice.starworlds.appearances.EnvironmentAppearance;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.Event;
-import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.EventListener;
 
-public class LocalEnvironmentConnection extends AbstractEnvironmentConnection
-		implements EventListener {
+public class LocalEnvironmentConnection extends AbstractEnvironmentConnection {
 
-	/*
-	 * The local connector will be notified of any events that this connection
-	 * has received.
-	 */
-	private EnvironmentConnector connector;
+	protected LocalEnvironmentConnection remoteConnection;
 
 	public LocalEnvironmentConnection(EnvironmentConnector connector,
 			EnvironmentAppearance environmentAppearance) {
-		super(environmentAppearance);
-		this.connector = connector;
+		super(connector, environmentAppearance);
 
 	}
 
 	public LocalEnvironmentConnection(EnvironmentConnector connector,
-			AbstractEnvironmentConnection remoteConnection,
+			LocalEnvironmentConnection remoteConnection,
 			EnvironmentAppearance environmentAppearance) {
-		super(remoteConnection, environmentAppearance);
-		this.connector = connector;
+		super(connector, environmentAppearance);
+		this.remoteConnection = remoteConnection;
+		this.remoteConnection.setRemoteConnection(this);
+	}
+
+	public EnvironmentConnection getRemoteConnection() {
+		return remoteConnection;
 	}
 
 	@Override
-	public void receive(Event event) {
-		if (isOpen()) {
-			connector.update(this, event);
-		}
+	public boolean isConnected() {
+		return this.getRemoteConnection() != null;
+	}
+
+	@Override
+	public EnvironmentAppearance getRemoteAppearance() {
+		return this.remoteConnection.getAppearance();
 	}
 
 	@Override
@@ -41,8 +42,7 @@ public class LocalEnvironmentConnection extends AbstractEnvironmentConnection
 		}
 	}
 
-	@Override
-	public void update(Object origin, Event event) {
-		send(event);
+	private void setRemoteConnection(LocalEnvironmentConnection connection) {
+		this.remoteConnection = connection;
 	}
 }

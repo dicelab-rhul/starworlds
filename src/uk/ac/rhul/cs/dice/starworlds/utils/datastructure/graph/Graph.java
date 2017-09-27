@@ -1,6 +1,7 @@
 package uk.ac.rhul.cs.dice.starworlds.utils.datastructure.graph;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,6 +14,14 @@ public class Graph<N extends GNode, E extends GEdge<N>> {
 	public Graph() {
 		nodes = new HashMap<>();
 		edges = new HashSet<>();
+	}
+
+	public Collection<N> getNodes() {
+		return nodes.values();
+	}
+
+	public Collection<E> getEdges() {
+		return edges;
 	}
 
 	public boolean containsNode(N node) {

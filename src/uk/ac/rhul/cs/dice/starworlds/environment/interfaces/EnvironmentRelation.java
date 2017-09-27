@@ -1,7 +1,7 @@
 package uk.ac.rhul.cs.dice.starworlds.environment.interfaces;
 
+import uk.ac.rhul.cs.dice.starworlds.environment.interaction.AbstractEnvironmentConnection;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.EnvironmentConnector;
-import uk.ac.rhul.cs.dice.starworlds.environment.interaction.LocalEnvironmentConnection;
 
 public enum EnvironmentRelation {
 
@@ -13,8 +13,8 @@ public enum EnvironmentRelation {
 
 		@Override
 		public void addConnection(EnvironmentConnector connector,
-				LocalEnvironmentConnection localConnection) {
-			connector.addSubEnvironment(localConnection);
+				AbstractEnvironmentConnection connection) {
+			connector.addSubEnvironment(connection);
 		}
 
 		@Override
@@ -30,8 +30,8 @@ public enum EnvironmentRelation {
 
 		@Override
 		public void addConnection(EnvironmentConnector connector,
-				LocalEnvironmentConnection localConnection) {
-			connector.setSuperEnvironment(localConnection);
+				AbstractEnvironmentConnection connection) {
+			connector.setSuperEnvironment(connection);
 		}
 
 		@Override
@@ -47,8 +47,8 @@ public enum EnvironmentRelation {
 
 		@Override
 		public void addConnection(EnvironmentConnector connector,
-				LocalEnvironmentConnection localConnection) {
-			connector.addNeighbourEnvironment(localConnection);
+				AbstractEnvironmentConnection connection) {
+			connector.addNeighbourEnvironment(connection);
 		}
 
 		@Override
@@ -66,5 +66,5 @@ public enum EnvironmentRelation {
 	public abstract EnvironmentRelation inverse();
 
 	public abstract void addConnection(EnvironmentConnector connector,
-			LocalEnvironmentConnection localConnection);
+			AbstractEnvironmentConnection connection);
 }

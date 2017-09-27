@@ -10,6 +10,10 @@ public class SynchronisationEvent extends AbstractEvent {
 	// private Long realtime; //maybe?
 	private int cycletime;
 	private SyncPoint syncPoint;
+	
+	public SynchronisationEvent() {
+		super();
+	}
 
 	public SynchronisationEvent(EnvironmentAppearance origin,
 			SyncPoint syncPoint, int cycletime) {

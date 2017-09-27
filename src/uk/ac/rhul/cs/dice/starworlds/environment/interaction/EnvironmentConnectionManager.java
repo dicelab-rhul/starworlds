@@ -1,5 +1,7 @@
 package uk.ac.rhul.cs.dice.starworlds.environment.interaction;
 
+import java.io.IOException;
+import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,20 +12,32 @@ import uk.ac.rhul.cs.dice.starworlds.appearances.EnvironmentAppearance;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.Event;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.EventListener;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.event.SynchronisationEvent;
+import uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet.INetConnectionPacket;
 import uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet.INetDefaultServer;
-import uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet.InitialisationMessage;
+import uk.ac.rhul.cs.dice.starworlds.environment.interaction.inet.INetEnvironmentConnection;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.AbstractConnectedEnvironment;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.Environment;
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.EnvironmentRelation;
+import uk.ac.rhul.cs.dice.starworlds.environment.world.World;
 import uk.ac.rhul.cs.dice.starworlds.utils.inet.INetServer;
 import uk.ac.rhul.cs.dice.starworlds.utils.inet.INetSlave;
 
-public class EnvironmentConnectionManager implements Receiver, Observer {
+public class EnvironmentConnectionManager implements Observer {
 
 	protected EnvironmentConnector connector;
 	protected INetServer server = null;
-	protected volatile int numRemoteConnections = 0;
-	protected volatile int expectedRemoteConnections = 0;
+
+	public class ExpectedConnection {
+		public EnvironmentAppearance appearance;
+		public EnvironmentRelation relation;
+
+		public ExpectedConnection(EnvironmentAppearance appearance,
+				EnvironmentRelation relation) {
+			super();
+			this.appearance = appearance;
+			this.relation = relation;
+		}
+	}
 
 	/**
 	 * Constructor specifically for mixed connections.
@@ -77,21 +91,6 @@ public class EnvironmentConnectionManager implements Receiver, Observer {
 		connector.subscribeTo(environment, events);
 	}
 
-	// TODO
-	public void setExpectedRemoteConnections(int expectedRemoteConnections) {
-		this.expectedRemoteConnections = expectedRemoteConnections;
-	}
-
-	public boolean expectingRemoteConnections() {
-		System.out.println(connector.getLocalEnvironment().getId()
-				+ " EXPECTED CONNCETIONS: " + expectedRemoteConnections);
-		return this.expectedRemoteConnections > 0;
-	}
-
-	public boolean reachedExpectedRemoteConnections() {
-		return expectedRemoteConnections <= numRemoteConnections;
-	}
-
 	/**
 	 * This method should only be called by the {@link INetServer} which this
 	 * {@link EnvironmentConnectionManager} is observing. This method will be
@@ -102,72 +101,82 @@ public class EnvironmentConnectionManager implements Receiver, Observer {
 	public void update(Observable obs, Object arg) {
 		if (INetServer.class.isAssignableFrom(obs.getClass())) {
 			if (INetSlave.class.isAssignableFrom(arg.getClass())) {
-				// System.out.println("ADDING NEW CONNECTION!");
-				// new
-				// INetEnvironmentConnection(connector.getLocalEnvironment(),
-				// (INetSlave) arg).addReciever(this);
+				INetSlave slave = (INetSlave) arg;
+				slave.addObserver(this);
+			} else {
+				invalidUpdateError(obs, arg);
 			}
+		} else if (INetSlave.class.isAssignableFrom(obs.getClass())) {
+			if (INetConnectionPacket.class.isAssignableFrom(arg.getClass())) {
+				INetSlave slave = (INetSlave) obs;
+				INetConnectionPacket packet = (INetConnectionPacket) arg;
+				INetEnvironmentConnection connection = new INetEnvironmentConnection(
+						slave, connector, this.getLocalEnvironment(),
+						packet.appearance);
+				slave.deleteObserver(this);
+				packet.relation.addConnection(connector, connection);
+				slave.send(this.getLocalEnvironment());
+			} else {
+				invalidUpdateError(obs, arg);
+			}
+		} else {
+			invalidUpdateError(obs, arg);
 		}
 	}
 
-	// public void connectToEnvironment(String host, Integer port,
-	// AmbientRelation relation) {
-	// INetEnvironmentConnection connection = new INetEnvironmentConnection(
-	// this.localenvironment.getAppearance(), relation, server, host,
-	// port);
-	// connection.addReciever(this);
-	// addRemoteEnvironment(connection);
-	// }
+	private void invalidUpdateError(Observable obs, Object arg) {
+		System.err
+				.println("Received invalid update : " + arg + " from: " + obs);
+	}
 
-	// public void addRemoteEnvironment(INetEnvironmentConnection connection) {
-	// AmbientRelation remoteRelation = connection.getRelationship()
-	// .getSecond();
-	// System.out.println(this.localenvironment + " CONNECTED TO: "
-	// + connection);
-	// // set the synchroniser
-	// connection.setSynchroniser(this.localenvironment.getPhysics()
-	// .getSynchroniser().addRemoteSynchroniser(connection));
-	// // TODO optimise, handle matching sub/neighbours
-	// if (remoteRelation.equals(AmbientRelation.SUB)) {
-	// this.subEnvironmentConnections.put(
-	// (EnvironmentAppearance) connection.getRemoteAppearance(),
-	// connection);
-	// } else if (remoteRelation.equals(AmbientRelation.NEIGHBOUR)) {
-	// this.neighbouringEnvironmentConnections.put(
-	// (EnvironmentAppearance) connection.getRemoteAppearance(),
-	// connection);
-	// } else if (remoteRelation.equals(AmbientRelation.SUPER)) {
-	// if (this.superEnvironmentConnection == null) {
-	// this.superEnvironmentConnection = connection;
-	// } else {
-	// String c = Environment.class.getSimpleName();
-	// System.err.println("Inconsistant " + c + " heirarchy, an " + c
-	// + " cannot have multiple super " + c + "s: "
-	// + this.superEnvironmentConnection + "," + connection);
-	// // TODO throw a custom exception?
-	// }
-	// }
-	// }
+	// **************************************************************** //
+	// ******** INITIALISATION METHODS FOR REMOTE ENVIRONMENTS ******** //
+	// **************************************************************** //
 
-	@Override
-	public synchronized void receive(Recipient recipient, Event event) {
-		if (InitialisationMessage.class.isAssignableFrom(event.getClass())) {
-			// // TODO redo this
-			// if (INetEnvironmentConnection.class.isAssignableFrom(recipient
-			// .getClass())) {
-			// INetEnvironmentConnection connection =
-			// (INetEnvironmentConnection) recipient;
-			// // addRemoteEnvironment(connection);
-			// connection.send((Event) this.localenvironment
-			// .getDefaultActionSubscriptionEvent());
-			// this.numRemoteConnections++;
-			// System.out.println("NUM REMOTE CONNECTIONS: "
-			// + numRemoteConnections);
-			//
-			// }
-		} else {
-			connector.notifyListeners(event);
+	/**
+	 * Generally this method will be called from the {@link World}, the world
+	 * sets up static connections between {@link Environment}s. One can take
+	 * advantage of this to implement dynamic connections. See {@link World} and
+	 * the methods it exposes for more information.
+	 * 
+	 * @param addr
+	 *            : of the remote {@link Environment}, this is the same as the
+	 *            remote {@link World} address (ip address)
+	 * @param port
+	 *            : of the remote {@link Environment} (that is, the port that
+	 *            the remote {@link EnvironmentConnectionManager} is listening
+	 *            to
+	 * @param relation
+	 *            : relationship between this {@link Environment} and the remote
+	 *            one
+	 * @param remoteAppearance
+	 *            : of the {@link Environment} that will be connected to
+	 * @return
+	 */
+	public boolean connect(String addr, Integer port,
+			EnvironmentRelation relation, EnvironmentAppearance remoteAppearance) {
+		try {
+			SocketAddress saddr = server.connect(addr, port);
+			if (saddr != null) {
+				INetSlave slave = server.getSlave(saddr);
+				Object reply = slave
+						.sendAndWaitForReply(new INetConnectionPacket(this
+								.getLocalEnvironment(), relation.inverse()));
+				if (EnvironmentAppearance.class.isAssignableFrom(reply
+						.getClass())) {
+					INetEnvironmentConnection connection = new INetEnvironmentConnection(
+							slave, connector, this.getLocalEnvironment(),
+							(EnvironmentAppearance) reply);
+					relation.addConnection(connector, connection);
+					return true;
+				} else {
+					System.err.println("invalid reply on connect: " + reply);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+		return false;
 	}
 
 	// **************************************************************** //
@@ -288,6 +297,10 @@ public class EnvironmentConnectionManager implements Receiver, Observer {
 
 	public boolean isDistributed() {
 		return server != null;
+	}
+
+	public Integer getLocalPort() {
+		return server.getLocalPort();
 	}
 
 	// @Override

@@ -1,11 +1,13 @@
 package uk.ac.rhul.cs.dice.starworlds.environment.world;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import uk.ac.rhul.cs.dice.starworlds.environment.interfaces.Universe;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.initialise.initialiser.ConnectionInitialiser;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.initialise.initialiser.PostInitialiser;
+import uk.ac.rhul.cs.dice.starworlds.environment.world.initialise.initialiser.RunInitialiser;
 import uk.ac.rhul.cs.dice.starworlds.environment.world.initialise.initialiser.ValidateInitialiser;
 
 public class WorldDeployer {
@@ -22,10 +24,7 @@ public class WorldDeployer {
 	 * @return the {@link Thread} that the {@link World} is running in
 	 */
 	public static Thread deployAndRun(World world) {
-		Thread t = new Thread(new WorldDeployer().initialiseWorld(world));
-		WORLDS.add(t);
-		t.start();
-		return t;
+		return run(new WorldDeployer().initialiseWorld(world));
 	}
 
 	/**
@@ -69,13 +68,7 @@ public class WorldDeployer {
 	 */
 	protected World initialiseWorld(World world) {
 		world.initialiseNodes(new ValidateInitialiser());
-		ConnectionInitialiser civ;
-		world.initialiseEdges((civ = new ConnectionInitialiser()));
-		try {
-			civ.waitForRemoteConnections();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		world.initialiseEdges(new ConnectionInitialiser(world));
 		world.initialiseNodes(new PostInitialiser());
 		return world;
 	}
